@@ -18,6 +18,9 @@ import requests
 
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3.1")
+# CPU-only local inference for a full resume + cover letter JSON payload can
+# easily take several minutes. Default generously; override via .env if needed.
+OLLAMA_TIMEOUT_SECONDS = int(os.environ.get("OLLAMA_TIMEOUT_SECONDS", "600"))
 
 SYSTEM_PROMPT = """You are a resume tailoring assistant. Given a base resume and a \
 job description, produce a tailored version of the resume plus a short cover letter.
@@ -96,7 +99,7 @@ Base resume:
             "stream": False,
             "options": {"temperature": 0.3},
         },
-        timeout=180,
+        timeout=OLLAMA_TIMEOUT_SECONDS,
     )
     response.raise_for_status()
 
