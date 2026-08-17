@@ -16,6 +16,14 @@ export interface JobPosting {
   job_id: string;
 }
 
+export interface ScoredPosting {
+  posting: JobPosting;
+  score: number;
+  rationale: string;
+  matched_skills: string[];
+  missing_skills: string[];
+}
+
 export interface PrefillJob {
   jobTitle: string;
   company: string;

@@ -1,5 +1,5 @@
 import { useState, FormEvent } from "react";
-import { JobPosting, PrefillJob } from "./types";
+import { JobPosting, ScoredPosting, PrefillJob } from "./types";
 
 const API_BASE = "http://localhost:8000/api";
 
@@ -12,9 +12,11 @@ export default function DiscoveryPanel({
 }) {
   const [boards, setBoards] = useState("stripe, netflix, notion");
   const [keyword, setKeyword] = useState("");
+  const [resumeForScoring, setResumeForScoring] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
   const [postings, setPostings] = useState<JobPosting[]>([]);
+  const [scored, setScored] = useState<ScoredPosting[] | null>(null);
   const [failedBoards, setFailedBoards] = useState<string[]>([]);
 
   async function handleSearch(e: FormEvent) {
@@ -27,6 +29,7 @@ export default function DiscoveryPanel({
 
     setStatus("loading");
     setError(null);
+    setScored(null);
 
     try {
       const res = await fetch(`${API_BASE}/discovery/search`, {
@@ -43,12 +46,35 @@ export default function DiscoveryPanel({
       const data = await res.json();
       setPostings(data.postings);
       setFailedBoards(data.boards_failed);
+
+      if (resumeForScoring.trim() && data.postings.length > 0) {
+        const scoreRes = await fetch(`${API_BASE}/matching/score`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            postings: data.postings,
+            base_resume: resumeForScoring,
+            min_score: 0,
+          }),
+        });
+        if (scoreRes.ok) {
+          const scoreData = await scoreRes.json();
+          setScored(scoreData.scored);
+        }
+      }
+
       setStatus("done");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
       setStatus("error");
     }
   }
+
+  // If scoring ran, show ranked results; otherwise fall back to raw postings.
+  const displayItems: { job: JobPosting; score: number | null; rationale: string | null }[] =
+    scored
+      ? scored.map((s) => ({ job: s.posting, score: s.score, rationale: s.rationale }))
+      : postings.map((job) => ({ job, score: null, rationale: null }));
 
   return (
     <div className="console__body">
@@ -57,7 +83,7 @@ export default function DiscoveryPanel({
 
         <div className="field">
           <span className="field__label">
-            boards<span className="field__hint">companies</span>
+            boards<span className="field__hint">comma-separated company tokens</span>
           </span>
           <input
             value={boards}
@@ -66,14 +92,33 @@ export default function DiscoveryPanel({
           />
         </div>
 
+        <p className="hint">
+          Company tokens as used on their Greenhouse or Lever job board — e.g. the
+          "stripe" in boards.greenhouse.io/stripe. Both providers are tried per token.
+        </p>
+
         <div className="field">
           <span className="field__label">
-            keyword<span className="field__hint">job title</span>
+            keyword<span className="field__hint">optional, filters titles</span>
           </span>
           <input
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
             placeholder="e.g. backend, machine learning"
+          />
+        </div>
+
+        <div className="field">
+          <span className="field__label">
+            resume<span className="field__hint">
+              optional — scores &amp; ranks results instantly, no LLM
+            </span>
+          </span>
+          <textarea
+            value={resumeForScoring}
+            onChange={(e) => setResumeForScoring(e.target.value)}
+            placeholder="Paste your resume to rank results by fit"
+            rows={5}
           />
         </div>
 
@@ -93,6 +138,7 @@ export default function DiscoveryPanel({
       <div className="panel output-panel">
         <div className="panel__label">
           postings {postings.length > 0 && `· ${postings.length} found`}
+          {scored && " · ranked by fit"}
         </div>
 
         {postings.length === 0 && status !== "loading" && (
@@ -109,16 +155,24 @@ export default function DiscoveryPanel({
         )}
 
         <div className="job-list">
-          {postings.map((job) => (
+          {displayItems.map(({ job, score, rationale }) => (
             <div className="job-card" key={`${job.source}-${job.job_id}`}>
               <div className="job-card__top">
                 <span className="job-card__source">{job.source}</span>
-                <span className="job-card__company">{job.company}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  {score !== null && (
+                    <span className={`score-badge ${scoreClass(score)}`}>
+                      {score}
+                    </span>
+                  )}
+                  <span className="job-card__company">{job.company}</span>
+                </div>
               </div>
               <div className="job-card__title">{job.title}</div>
               {job.location && (
                 <div className="job-card__location">{job.location}</div>
               )}
+              {rationale && <div className="job-card__rationale">{rationale}</div>}
               <div className="job-card__actions">
                 <a
                   className="job-card__link"
@@ -148,4 +202,10 @@ export default function DiscoveryPanel({
       </div>
     </div>
   );
+}
+
+function scoreClass(score: number): string {
+  if (score >= 60) return "score-badge--high";
+  if (score >= 30) return "score-badge--mid";
+  return "score-badge--low";
 }

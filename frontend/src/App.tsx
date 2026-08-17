@@ -24,7 +24,7 @@ export default function App() {
         <div className="header-meta">
           <span className="dot" />
           {view === "discovery"
-            ? "endpoint: /api/discovery/search"
+            ? "endpoint: /api/discovery/search + /api/matching/score"
             : "endpoint: /api/tailoring/generate"}
         </div>
       </header>

@@ -25,6 +25,9 @@ export default function TailoringPanel({ prefill }: { prefill: PrefillJob | null
     }
   }, [prefill]);
 
+  const showPrefillNotice =
+    prefill !== null && jobDescription === prefill.jobDescription;
+
   const canSubmit =
     jobTitle.trim() && company.trim() && jobDescription.trim() && baseResume.trim();
 
@@ -69,7 +72,7 @@ export default function TailoringPanel({ prefill }: { prefill: PrefillJob | null
       <form className="panel input-panel" onSubmit={handleSubmit}>
         <div className="panel__label">input parameters</div>
 
-        {prefill && (
+        {prefill && showPrefillNotice && (
           <p className="hint hint--accent">
             Prefilled from discovery — paste the full job description below for best
             results.
