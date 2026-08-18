@@ -16,6 +16,9 @@ export default function TailoringPanel({ prefill }: { prefill: PrefillJob | null
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<TailorResult | null>(null);
   const [activeTab, setActiveTab] = useState<"resume" | "cover">("resume");
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">(
+    "idle"
+  );
 
   useEffect(() => {
     if (prefill) {
@@ -61,9 +64,34 @@ export default function TailoringPanel({ prefill }: { prefill: PrefillJob | null
       setResult(data);
       setActiveTab("resume");
       setStatus("done");
+      setSaveStatus("idle");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
       setStatus("error");
+    }
+  }
+
+  async function handleSaveDraft() {
+    if (!result) return;
+    setSaveStatus("saving");
+    try {
+      const res = await fetch(`${API_BASE}/applications`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          job_title: jobTitle,
+          company,
+          job_url: null,
+          job_description: jobDescription,
+          tailored_resume: result.tailored_resume,
+          cover_letter: result.cover_letter,
+          match_score: result.match_score,
+        }),
+      });
+      if (!res.ok) throw new Error("save failed");
+      setSaveStatus("saved");
+    } catch {
+      setSaveStatus("error");
     }
   }
 
@@ -190,6 +218,22 @@ export default function TailoringPanel({ prefill }: { prefill: PrefillJob | null
             <pre className="output-text">
               {activeTab === "resume" ? result.tailored_resume : result.cover_letter}
             </pre>
+
+            <button
+              type="button"
+              className="save-draft-btn"
+              disabled={saveStatus === "saving" || saveStatus === "saved"}
+              onClick={handleSaveDraft}
+            >
+              {saveStatus === "saving"
+                ? "Saving…"
+                : saveStatus === "saved"
+                ? "Saved to tracking ✓"
+                : "Save as draft →"}
+            </button>
+            {saveStatus === "error" && (
+              <p className="error-text">Couldn't save — is the backend running?</p>
+            )}
           </>
         )}
       </div>

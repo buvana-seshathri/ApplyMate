@@ -24,6 +24,23 @@ export interface ScoredPosting {
   missing_skills: string[];
 }
 
+export type ApplicationStatus =
+  | "draft"
+  | "applied"
+  | "interviewing"
+  | "rejected"
+  | "offer";
+
+export interface ApplicationSummary {
+  id: number;
+  job_title: string;
+  company: string;
+  job_url: string | null;
+  match_score: number;
+  status: ApplicationStatus;
+  created_at: string;
+}
+
 export interface PrefillJob {
   jobTitle: string;
   company: string;

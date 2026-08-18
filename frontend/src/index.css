@@ -442,6 +442,136 @@ button[type="submit"]:disabled {
   text-decoration: underline;
 }
 
+.save-draft-btn {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  background: none;
+  border: 1.5px solid var(--violet);
+  color: var(--violet);
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: all 0.15s ease;
+}
+
+.save-draft-btn:hover:not(:disabled) {
+  background: var(--violet);
+  color: #fff;
+}
+
+.save-draft-btn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.tracking-view {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 760px) {
+  .stat-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.stat-card {
+  background: var(--panel);
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  padding: 14px;
+  text-align: center;
+  box-shadow: 0 8px 20px -14px rgba(79, 94, 255, 0.25);
+}
+
+.stat-card__count {
+  font-family: var(--mono);
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.stat-card__label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}
+
+.stat-card--draft .stat-card__count { color: var(--ink-soft); }
+.stat-card--applied .stat-card__count { color: var(--blue); }
+.stat-card--interviewing .stat-card__count { color: var(--violet); }
+.stat-card--rejected .stat-card__count { color: var(--danger); }
+.stat-card--offer .stat-card__count { color: var(--ok); }
+
+.tracking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tracking-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1.5px solid var(--line);
+  background: var(--bg-a);
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+
+.tracking-row__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.tracking-row__title {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tracking-row__company {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.status-select {
+  font-family: var(--mono);
+  font-size: 12px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 8px;
+  padding: 6px 8px;
+  background: #fff;
+  color: var(--ink);
+}
+
+.tracking-row__delete {
+  background: none;
+  border: none;
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 6px;
+}
+
+.tracking-row__delete:hover {
+  color: var(--danger);
+}
+
 .job-card__rationale {
   font-size: 12px;
   color: var(--ink-soft);

@@ -1,9 +1,16 @@
 import { useState } from "react";
 import DiscoveryPanel from "./DiscoveryPanel";
 import TailoringPanel from "./TailoringPanel";
+import TrackingPanel from "./TrackingPanel";
 import { PrefillJob } from "./types";
 
-type View = "discovery" | "tailoring";
+type View = "discovery" | "tailoring" | "tracking";
+
+const ENDPOINT_LABEL: Record<View, string> = {
+  discovery: "endpoint: /api/discovery/search + /api/matching/score",
+  tailoring: "endpoint: /api/tailoring/generate",
+  tracking: "endpoint: /api/applications",
+};
 
 export default function App() {
   const [view, setView] = useState<View>("discovery");
@@ -23,9 +30,7 @@ export default function App() {
         </div>
         <div className="header-meta">
           <span className="dot" />
-          {view === "discovery"
-            ? "endpoint: /api/discovery/search + /api/matching/score"
-            : "endpoint: /api/tailoring/generate"}
+          {ENDPOINT_LABEL[view]}
         </div>
       </header>
 
@@ -44,13 +49,20 @@ export default function App() {
         >
           <span className="nav-tab__index">02</span> tailoring
         </button>
+        <button
+          type="button"
+          className={view === "tracking" ? "nav-tab nav-tab--active" : "nav-tab"}
+          onClick={() => setView("tracking")}
+        >
+          <span className="nav-tab__index">03</span> tracking
+        </button>
       </nav>
 
-      {view === "discovery" ? (
+      {view === "discovery" && (
         <DiscoveryPanel onSendToTailoring={handleSendToTailoring} />
-      ) : (
-        <TailoringPanel prefill={prefill} />
       )}
+      {view === "tailoring" && <TailoringPanel prefill={prefill} />}
+      {view === "tracking" && <TrackingPanel />}
     </div>
   );
 }
